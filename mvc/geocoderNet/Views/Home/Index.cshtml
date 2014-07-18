@@ -1,0 +1,71 @@
+﻿@using Newtonsoft.Json
+@model geocoderNet.Models.FeatColl
+@{
+    ViewBag.Title = "Geocoder";
+}
+
+@section scripts
+{
+
+    <script type="text/javascript" src="@Url.Content("~/Scripts/leaflet-0.6.4.min.js")"></script>
+   <script type="text/javascript">
+       var features = [];
+       features.push(@Html.Raw(Model.features != null && Model.features.Count() > 0 ? JsonConvert.SerializeObject(Model.features[0]) : ""));
+    </script>
+    <script type="text/javascript">
+        var map = new L.Map('map');
+        var cloudmadeUrl = 'http://acetate.geoiq.com/tiles/acetate/{z}/{x}/{y}.png',
+            cloudmadeAttrib = 'Map data &copy; 2011 OpenStreetMap contributors, Style &copy; 2011 GeoIQ',
+            cloudmade = new L.TileLayer(cloudmadeUrl, { maxZoom: 18, attribution: cloudmadeAttrib });
+        var center = new L.LatLng(37.716777, -75.686233);
+        map.setView(center, 13).addLayer(cloudmade);
+        circleOptions = {
+            color: 'red',
+            fillColor: '#f03',
+            fillOpacity: 0.5
+        };
+        var circleLocation, circle;
+        for (var i = 0; i < features.length; i++) {
+            circleOptions.fillOpacity = features[i].properties.score;
+            circleLocation = new L.LatLng(features[i].geometry.coordinates[1], features[i].geometry.coordinates[0]);
+            circle = new L.Circle(circleLocation, 200, circleOptions);
+            map.addLayer(circle);
+            map.setView(circleLocation, 13);
+        }
+    </script>
+}
+
+<div id='map' style='height:400px'></div>
+<div>
+    <h2>Features</h2>
+    <table border='1' cellpadding='4' cellspacing='0'>
+        <tr>
+            <th>number</th>
+            <th>street</th>
+            <th>zip</th>
+            <th>city</th>
+            <th>state</th>
+            <th>fips_county</th>
+            <th>score</th>
+            <th>prenum</th>
+            <th>precision</th>
+        </tr>
+        @if (Model.features != null)
+        {
+            foreach (var item in Model.features)
+            {
+                <tr>
+                    <td>@item.properties.number</td>
+                    <td>@item.properties.street</td>
+                    <td>@item.properties.zip</td>
+                    <td>@item.properties.city</td>
+                    <td>@item.properties.state</td>
+                    <td>@item.properties.fips_county</td>
+                    <td>@item.properties.score</td>
+                    <td>@item.properties.prenum</td>
+                    <td>@item.properties.precision</td>
+                </tr>
+            }
+        }
+    </table>
+</div>
